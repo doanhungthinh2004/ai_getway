@@ -2,6 +2,9 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import request from 'supertest';
 import { app } from '../src/app';
 import { connectDatabase, disconnectDatabase } from '../src/config/db';
+import OpenAI from 'openai';
+import { AIService } from '../src/services/aiService';
+import { AIProvider } from '../src/providers/AIProvider';
 
 let token = '';
 
@@ -62,5 +65,28 @@ describe('AI endpoints', () => {
     expect(res.body.data).toHaveProperty('score');
     expect(res.body.data).toHaveProperty('summary');
     expect(res.body.meta.request_id).toBeTruthy();
+  });
+});
+
+describe('AI service reliability', () => {
+  it('maps provider timeouts to a gateway timeout error', async () => {
+    const timeoutProvider: AIProvider = {
+      chat: async () => {
+        throw new OpenAI.APIConnectionTimeoutError();
+      },
+      analyze: async () => ({}),
+    };
+
+    const service = new AIService(timeoutProvider);
+
+    await expect(
+      service.chat({
+        model: 'gpt-4o-mini',
+        messages: [{ role: 'user', content: 'test' }],
+      }),
+    ).rejects.toMatchObject({
+      code: 'AI_PROVIDER_TIMEOUT',
+      statusCode: 504,
+    });
   });
 });

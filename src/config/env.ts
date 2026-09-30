@@ -9,6 +9,7 @@ export const env = {
   openAiApiKey: process.env.OPENAI_API_KEY ?? '',
   openAiModel: process.env.OPENAI_MODEL ?? 'gpt-4o-mini',
   aiTimeoutMs: Number(process.env.AI_TIMEOUT_MS ?? '10000'),
+  aiMaxRetries: Number(process.env.AI_MAX_RETRIES ?? '2'),
   rateLimitWindowMs: Number(process.env.RATE_LIMIT_WINDOW_MS ?? '60000'),
   rateLimitMaxRequests: Number(process.env.RATE_LIMIT_MAX_REQUESTS ?? '60'),
   logLevel: process.env.LOG_LEVEL ?? 'info',

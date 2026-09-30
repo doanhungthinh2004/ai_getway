@@ -1,7 +1,11 @@
 "use strict";
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AIService = void 0;
 const error_1 = require("../utils/error");
+const openai_1 = __importDefault(require("openai"));
 const OpenAIProvider_1 = require("../providers/OpenAIProvider");
 const logger_1 = require("../utils/logger");
 class AIService {
@@ -25,8 +29,7 @@ class AIService {
             };
         }
         catch (error) {
-            logger_1.logger.error({ error }, 'AI provider chat failed');
-            throw new error_1.AppError('AI provider request failed', 'AI_PROVIDER_ERROR', 502);
+            throw this.toProviderError(error, 'AI provider chat failed');
         }
     }
     async analyze(model, input, schema) {
@@ -41,12 +44,18 @@ class AIService {
             };
         }
         catch (error) {
-            if (error instanceof error_1.AppError) {
-                throw error;
-            }
-            logger_1.logger.error({ error }, 'AI provider analyze failed');
-            throw new error_1.AppError('AI provider request failed', 'AI_PROVIDER_ERROR', 502);
+            throw this.toProviderError(error, 'AI provider analyze failed');
         }
+    }
+    toProviderError(error, logMessage) {
+        if (error instanceof error_1.AppError) {
+            return error;
+        }
+        logger_1.logger.error({ error }, logMessage);
+        if (error instanceof openai_1.default.APIConnectionTimeoutError) {
+            return new error_1.AppError('AI provider request timed out', 'AI_PROVIDER_TIMEOUT', 504);
+        }
+        return new error_1.AppError('AI provider request failed', 'AI_PROVIDER_ERROR', 502);
     }
 }
 exports.AIService = AIService;

@@ -8,7 +8,11 @@ export class OpenAIProvider implements AIProvider {
 
   constructor() {
     if (env.openAiApiKey) {
-      this.client = new OpenAI({ apiKey: env.openAiApiKey });
+      this.client = new OpenAI({
+        apiKey: env.openAiApiKey,
+        timeout: env.aiTimeoutMs,
+        maxRetries: env.aiMaxRetries,
+      });
     } else {
       this.client = null;
     }

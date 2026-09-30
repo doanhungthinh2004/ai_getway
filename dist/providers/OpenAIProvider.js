@@ -11,7 +11,11 @@ class OpenAIProvider {
     client;
     constructor() {
         if (env_1.env.openAiApiKey) {
-            this.client = new openai_1.default({ apiKey: env_1.env.openAiApiKey });
+            this.client = new openai_1.default({
+                apiKey: env_1.env.openAiApiKey,
+                timeout: env_1.env.aiTimeoutMs,
+                maxRetries: env_1.env.aiMaxRetries,
+            });
         }
         else {
             this.client = null;
