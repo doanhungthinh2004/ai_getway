@@ -220,16 +220,34 @@ Formulas:
 
 ## 17. Local Setup
 
-1. Copy `.env.example` to `.env`
-2. Set your values
-3. Install dependencies
-4. Run the server
+1. Install MongoDB Community Edition or use MongoDB Atlas.
+2. Open MongoDB Compass and create a database named `ai_gateway`.
+3. Copy `.env.example` to `.env`.
+4. Set `MONGODB_URI` to your Compass connection string, for example:
+
+```env
+MONGODB_URI=mongodb://localhost:27017/ai_gateway
+```
+
+5. Set your JWT secret and optional OpenAI key.
+6. Install dependencies.
+7. Run the server.
 
 ```bash
 npm install
 cp .env.example .env
 npm run dev
 ```
+
+### MongoDB Compass example
+
+Connection string:
+
+```text
+mongodb://localhost:27017/ai_gateway
+```
+
+You can then inspect collections such as `users`, `conversations`, and `usage_logs` directly in Compass.
 
 ## 18. Environment Variables
 

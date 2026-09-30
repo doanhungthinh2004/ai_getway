@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
-import mongoose from 'mongoose';
 import { env } from '../config/env';
+import { getDatabaseStatus } from '../config/db';
 
 export class HealthController {
   getHealth(_req: Request, res: Response) {
-    const dbStatus = mongoose.connection.readyState === 1 ? 'connected' : 'disconnected';
+    const dbStatus = getDatabaseStatus();
     const aiProviderStatus = env.openAiApiKey ? 'available' : 'demo-mode';
 
     return res.json({
