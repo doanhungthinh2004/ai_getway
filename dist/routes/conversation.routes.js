@@ -1,0 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.conversationRouter = void 0;
+const express_1 = require("express");
+const conversationController_1 = require("../controllers/conversationController");
+const auth_1 = require("../middleware/auth");
+exports.conversationRouter = (0, express_1.Router)();
+exports.conversationRouter.get('/', auth_1.requireAuth, conversationController_1.conversationController.list.bind(conversationController_1.conversationController));
+exports.conversationRouter.get('/:id', auth_1.requireAuth, conversationController_1.conversationController.getById.bind(conversationController_1.conversationController));
+exports.conversationRouter.delete('/:id', auth_1.requireAuth, conversationController_1.conversationController.remove.bind(conversationController_1.conversationController));
