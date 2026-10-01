@@ -1,4 +1,5 @@
 import { AppError } from '../utils/error';
+import OpenAI from 'openai';
 import { OpenAIProvider } from '../providers/OpenAIProvider';
 import { AIProvider, ChatMessage } from '../providers/AIProvider';
 import { logger } from '../utils/logger';
@@ -34,8 +35,7 @@ export class AIService {
         latencyMs,
       };
     } catch (error) {
-      logger.error({ error }, 'AI provider chat failed');
-      throw new AppError('AI provider request failed', 'AI_PROVIDER_ERROR', 502);
+      throw this.toProviderError(error, 'AI provider chat failed');
     }
   }
 
@@ -52,12 +52,21 @@ export class AIService {
         latencyMs,
       };
     } catch (error) {
-      if (error instanceof AppError) {
-        throw error;
-      }
-
-      logger.error({ error }, 'AI provider analyze failed');
-      throw new AppError('AI provider request failed', 'AI_PROVIDER_ERROR', 502);
+      throw this.toProviderError(error, 'AI provider analyze failed');
     }
+  }
+
+  private toProviderError(error: unknown, logMessage: string): AppError {
+    if (error instanceof AppError) {
+      return error;
+    }
+
+    logger.error({ error }, logMessage);
+
+    if (error instanceof OpenAI.APIConnectionTimeoutError) {
+      return new AppError('AI provider request timed out', 'AI_PROVIDER_TIMEOUT', 504);
+    }
+
+    return new AppError('AI provider request failed', 'AI_PROVIDER_ERROR', 502);
   }
 }

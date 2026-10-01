@@ -11,7 +11,11 @@ class OpenAIProvider {
     client;
     constructor() {
         if (env_1.env.openAiApiKey) {
-            this.client = new openai_1.default({ apiKey: env_1.env.openAiApiKey });
+            this.client = new openai_1.default({
+                apiKey: env_1.env.openAiApiKey,
+                timeout: env_1.env.aiTimeoutMs,
+                maxRetries: env_1.env.aiMaxRetries,
+            });
         }
         else {
             this.client = null;
@@ -52,6 +56,14 @@ class OpenAIProvider {
         };
     }
     async analyze(request) {
+        if (!this.client) {
+            const demoResult = this.buildDemoStructuredOutput(request.schema, request.input);
+            const valid = this.validateSchema(demoResult, request.schema);
+            if (!valid) {
+                throw new error_1.AppError('AI response did not match the required structured schema', 'AI_INVALID_RESPONSE', 502);
+            }
+            return demoResult;
+        }
         const systemPrompt = `Return valid JSON only that matches this schema exactly: ${JSON.stringify(request.schema)}. Do not wrap the result in markdown fences.`;
         const response = await this.chat({
             model: request.model,
@@ -87,11 +99,59 @@ class OpenAIProvider {
             if (currentValue === undefined)
                 return false;
             if (typeof expectedType === 'string') {
+                if (expectedType === 'integer') {
+                    if (!Number.isInteger(currentValue))
+                        return false;
+                    continue;
+                }
                 if (typeof currentValue !== expectedType)
                     return false;
             }
         }
         return true;
+    }
+    buildDemoStructuredOutput(schema, input) {
+        const normalized = input.toLowerCase();
+        const sentiment = /good|great|easy|fast|love|excellent|positive|happy|satisfied/i.test(normalized)
+            ? 'positive'
+            : /bad|slow|confusing|hard|hate|negative|frustrating|poor/i.test(normalized)
+                ? 'negative'
+                : 'neutral';
+        const score = sentiment === 'positive' ? 0.82 : sentiment === 'negative' ? 0.28 : 0.55;
+        const summary = input.trim().length > 0 ? input.trim() : 'No input provided.';
+        const result = {};
+        for (const [key, expectedType] of Object.entries(schema)) {
+            if (typeof expectedType !== 'string') {
+                result[key] = key === 'summary' ? summary : '';
+                continue;
+            }
+            switch (expectedType) {
+                case 'string':
+                    result[key] =
+                        key === 'sentiment'
+                            ? sentiment
+                            : key === 'summary'
+                                ? summary
+                                : `${key} demo value`;
+                    break;
+                case 'number':
+                    result[key] = key === 'score' ? score : 0;
+                    break;
+                case 'boolean':
+                    result[key] = sentiment === 'positive';
+                    break;
+                case 'object':
+                    result[key] = { source: 'demo' };
+                    break;
+                case 'integer':
+                    result[key] = key === 'count' ? 1 : 0;
+                    break;
+                default:
+                    result[key] = '';
+                    break;
+            }
+        }
+        return result;
     }
 }
 exports.OpenAIProvider = OpenAIProvider;
