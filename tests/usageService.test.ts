@@ -17,6 +17,19 @@ describe('usage metrics calculation', () => {
     expect(metrics.average_latency_ms).toBe(2000);
     expect(metrics.error_rate).toBe(0.3333);
   });
+
+  it('estimates configured model costs and counts requests without pricing', () => {
+    const metrics = calculateUsageMetrics(
+      [
+        { model: 'priced-model', inputTokens: 1_000_000, outputTokens: 500_000 },
+        { model: 'unknown-model', inputTokens: 100, outputTokens: 100 },
+      ],
+      { 'priced-model': { inputPerMillionUsd: 1, outputPerMillionUsd: 2 } },
+    );
+
+    expect(metrics.estimated_cost_usd).toBe(2);
+    expect(metrics.unpriced_requests).toBe(1);
+  });
 });
 
 describe('AI request validation', () => {

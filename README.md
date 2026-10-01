@@ -207,6 +207,14 @@ Formulas:
 - `tokens` = total input + output tokens
 - `average_latency_ms` = total latency / request count
 - `error_rate` = error request count / total requests
+- `estimated_cost_usd` = estimated cost for requests with configured model pricing
+- `unpriced_requests` = requests whose model has no configured pricing
+
+Set `AI_MODEL_PRICING` to a JSON object keyed by exact model name. Rates are USD per one million input/output tokens; use the provider's current published rates. The reported cost sums only configured models, so check `unpriced_requests` before treating it as a complete total.
+
+```env
+AI_MODEL_PRICING={"gpt-4o-mini":{"inputPerMillionUsd":0.15,"outputPerMillionUsd":0.6}}
+```
 
 ## 16. Security
 
@@ -258,6 +266,7 @@ JWT_SECRET=change_me_in_production
 OPENAI_API_KEY=
 OPENAI_MODEL=gpt-4o-mini
 AI_TIMEOUT_MS=10000
+AI_MODEL_PRICING={}
 RATE_LIMIT_WINDOW_MS=60000
 RATE_LIMIT_MAX_REQUESTS=60
 LOG_LEVEL=info

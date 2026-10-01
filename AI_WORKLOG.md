@@ -36,11 +36,12 @@ Authentication is enforced for chat, analyze, conversation, and usage routes. Co
 - Vitest suite executed with `npm run test`
 - Basic runtime startup checked by launching the compiled server and verifying the boot path
 - API structure and models reviewed against the challenge requirements
+- Usage cost estimates verified with configurable per-model input/output pricing
 
 ## Future Improvements
 
 - add Redis-backed rate limiting
 - build richer provider fallback logic
-- implement cost estimation service
+- replace manual model pricing configuration with a maintained, versioned pricing catalog
 - add real MongoDB integration tests with seeded data
 - expand Swagger schema details for each endpoint
